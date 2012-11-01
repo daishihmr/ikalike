@@ -10,4 +10,5 @@ INSTALL & RUN
 -------------
 
     $ git clone https://github.com/daishihmr/ikalike.git
+    $ cd ikalike
     $ java -jar simple-web-server.jar
