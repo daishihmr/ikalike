@@ -4,5 +4,10 @@
 DEMO
 ----
 
-[http://tomcat.dev7.jp/test/ikalike/](http://tomcat.dev7.jp/test/ikalike/)
+[http://static.dev7.jp/test/ikalike/](http://static.dev7.jp/test/ikalike/)
 
+INSTALL & RUN
+-------------
+
+    $ git clone https://github.com/daishihmr/ikalike.git
+    $ java -jar simple-web-server.jar
