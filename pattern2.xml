@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE bulletml SYSTEM "http://www.asahi-net.or.jp/~cs8k-cyu/bulletml/bulletml.dtd">
+<bulletml xmlns="http://www.asahi-net.or.jp/~cs8k-cyu/bulletml">
+	<action label="top1">
+		<fire>
+			<direction type="absolute">90</direction>
+			<bulletRef label="child_23" />
+		</fire>
+		<fire>
+			<direction type="absolute">270</direction>
+			<bulletRef label="child_23" />
+		</fire>
+
+		<changeDirection>
+			<direction type="absolute">90</direction>
+			<term>1</term>
+		</changeDirection>
+		<changeSpeed>
+			<speed>0.1</speed>
+			<term>30</term>
+		</changeSpeed>
+		<wait>120</wait>
+		<repeat>
+			<times>2</times>
+			<action>
+				<changeSpeed>
+					<speed>-0.1</speed>
+					<term>30</term>
+				</changeSpeed>
+				<wait>240</wait>
+				<changeSpeed>
+					<speed>0.1</speed>
+					<term>30</term>
+				</changeSpeed>
+				<wait>240</wait>
+			</action>
+		</repeat>
+		<changeSpeed>
+			<speed>-0.1</speed>
+			<term>30</term>
+		</changeSpeed>
+		<wait>120</wait>
+		<changeSpeed>
+			<speed>0</speed>
+			<term>30</term>
+		</changeSpeed>
+	</action>
+
+	<action label="top2">
+		<repeat>
+			<times>55</times>
+			<action>
+				<fire>
+					<direction type="absolute">180-30</direction>
+					<bullet label="w" />
+				</fire>
+				<repeat>
+					<times>9</times>
+					<action>
+						<fire>
+							<direction type="sequence">6</direction>
+							<bullet label="w" />
+						</fire>
+					</action>
+				</repeat>
+				<wait>30</wait>
+			</action>
+		</repeat>
+	</action>
+
+	<bullet label="child_22">
+		<speed>2</speed>
+		<action>
+			<wait>55</wait>
+			<changeSpeed>
+				<speed>0</speed>
+				<term>1</term>
+			</changeSpeed>
+			<repeat>
+				<times>30</times>
+				<action>
+					<fire>
+						<bullet label="w" />
+					</fire>
+					<wait>30</wait>
+				</action>
+			</repeat>
+			<changeDirection>
+				<direction type="absolute">0</direction>
+				<term>1</term>
+			</changeDirection>
+			<changeSpeed>
+				<speed>1</speed>
+				<term>10</term>
+			</changeSpeed>
+		</action>
+	</bullet>
+
+	<bullet label="child_23">
+		<speed>2</speed>
+		<action>
+			<wait>55</wait>
+			<changeSpeed>
+				<speed>0</speed>
+				<term>1</term>
+			</changeSpeed>
+			<repeat>
+				<times>30</times>
+				<action>
+					<fire>
+						<bullet label="b" />
+					</fire>
+					<wait>30</wait>
+				</action>
+			</repeat>
+			<changeDirection>
+				<direction type="absolute">0</direction>
+				<term>1</term>
+			</changeDirection>
+			<changeSpeed>
+				<speed>1</speed>
+				<term>10</term>
+			</changeSpeed>
+		</action>
+	</bullet>
+
+</bulletml>

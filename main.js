@@ -7,20 +7,55 @@ Node.prototype.remove = function() {
 };
 
 window.onload = function() {
-    var game = new Game(480, 640);
+    var game = new Game(480, 480);
     game.fps = 60;
     game.keybind("Z".charCodeAt(0), "a");
     game.keybind("X".charCodeAt(0), "b");
-    game.preload("chara1.png", "barrier_white.png", "barrier_black.png",
-            "icon0.png", "eb.png", "explosion.png", "pattern1.xml");
+    game.preload("chara1.png", "barrier.png", "icon0.png", "enemy-bullet.png",
+            "explosion.png", "pattern1.xml");
     game.on("load", function() {
-        var scene = new CanvasGroup();
-        game.rootScene.addChild(scene);
-        scene.backgroundColor = "#333333";
+        (function() {
+            var C = 64;
+            var s = new Surface(C * 2, C * 1);
+            var c = s.context;
+            var cx, cy, r, g;
 
-        var explode = function(obj) {
+            cx = C * 0 + C / 2;
+            cy = C / 2;
+            r = 32;
+            g = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+            g.addColorStop(0.0, "rgba(255,255,255,0.0)");
+            g.addColorStop(0.2, "rgba(255,255,255,0.0)");
+            g.addColorStop(0.9, "rgba(255,255,255,0.8)");
+            g.addColorStop(1.0, "rgba(255,255,255,0.0)");
+            c.fillStyle = g;
+            c.fillRect(C * 0, C * 0, C, C);
+
+            cx = C * 1 + C / 2;
+            cy = C / 2;
+            r = 32;
+            g = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+            g.addColorStop(0.0, "rgba(  0,  0,  0,0.0)");
+            g.addColorStop(0.2, "rgba(  0,  0,  0,0.0)");
+            g.addColorStop(0.9, "rgba( 50,  0,  0,0.8)");
+            g.addColorStop(1.0, "rgba(  0,  0,  0,0.0)");
+            c.fillStyle = g;
+            c.fillRect(C * 1, C * 0, C, C);
+
+            document.getElementById("img").src = s.toDataURL();
+        })();
+
+        var scene = new CanvasGroup();
+        scene.context.globalCompositeOperation = "lighter";
+        game.rootScene.addChild(scene);
+        scene.backgroundColor = "#1f3005";
+
+        var explode = function(obj, size) {
+            if (size === undefined) {
+                size = 1;
+            }
             var exp = new Sprite(32, 32);
-            exp.scale(3, 3);
+            exp.scale(3 * size, 3 * size);
             exp.image = game.assets["explosion.png"];
             exp.frame = 0;
             exp.x = obj.x + (obj.width - exp.width) / 2;
@@ -64,20 +99,28 @@ window.onload = function() {
 
         var kuma = new Sprite(32, 32);
         kuma.image = game.assets["chara1.png"];
-        kuma.speed = 4;
+        kuma.speed = 3;
         kuma.mode = 0;
         kuma.frames = [ 5, 0 ];
         kuma.barrier = new Sprite(64, 64);
-        kuma.barrier.images = [ game.assets["barrier_white.png"],
-                game.assets["barrier_black.png"] ];
+        kuma.barrier.image = game.assets["barrier.png"];
         kuma.mophing = false;
         kuma.heat = 0;
         kuma.muteki = false;
+        kuma.mutekiEndFrame = 0;
 
         kuma.frame = kuma.frames[kuma.mode];
-        kuma.barrier.image = kuma.barrier.images[kuma.mode];
+        kuma.barrier.frame = kuma.mode;
 
         kuma.on("enterframe", function() {
+            if (this.muteki) {
+                this.visible = !!(this.age % 2);
+            }
+            if (game.frame >= this.mutekiEndFrame) {
+                this.muteki = false;
+                this.visible = true;
+            }
+
             if (game.input.up) {
                 this.y -= this.speed;
             } else if (game.input.down) {
@@ -123,23 +166,15 @@ window.onload = function() {
                 this.mophing = false;
                 this.mode = m;
             });
-            kuma.barrier.tl.scaleTo(0, 0, 5).then(function() {
-                this.image = this.images[m];
-            }).scaleTo(1, 1, 5);
+            kuma.barrier.tl.scaleTo(0, 0, 8).then(function() {
+                this.frame = m;
+            }).scaleTo(1, 1, 8);
         });
         kuma.restart = function() {
             this.muteki = true;
             this.x = (game.width - this.width) / 2;
-            this.y = 600;
-            var blink = function() {
-                this.visible = !!(this.age % 2);
-            };
-            this.on("enterframe", blink);
-            this.tl.delay(120).then(function() {
-                this.removeEventListener("enterframe", blink);
-                this.visible = true;
-                this.muteki = false;
-            });
+            this.y = game.height - this.height;
+            this.mutekiEndFrame = game.frame + 120;
 
             scene.addChild(this);
             scene.addChild(this.barrier);
@@ -173,16 +208,15 @@ window.onload = function() {
 
         var enemyBulletPool = [];
         for ( var i = 0; i < 1000; i++) {
-            var eb = new Sprite(8, 8);
-            eb.scale(2, 2);
+            var eb = new Sprite(16, 16);
+            eb.scale(1.5, 1.5);
             enemyBulletPool.pool(eb);
         }
         var ebFactory = function(spec) {
-            var eb = enemyBulletPool.get();
             if (spec.label[0] == "w") {
                 var eb = enemyBulletPool.get();
                 if (eb) {
-                    eb.image = game.assets["eb.png"];
+                    eb.image = game.assets["enemy-bullet.png"];
                     eb.frame = 0;
                     eb.type = 0;
                 }
@@ -190,8 +224,8 @@ window.onload = function() {
             } else if (spec.label[0] == "b") {
                 var eb = enemyBulletPool.get();
                 if (eb) {
-                    eb.image = game.assets["eb.png"];
-                    eb.frame = 1;
+                    eb.image = game.assets["enemy-bullet.png"];
+                    eb.frame = 4;
                     eb.type = 1;
                 }
                 return eb;
@@ -200,7 +234,6 @@ window.onload = function() {
                 eb.image = game.assets["icon0.png"];
                 var f;
                 if (f = spec.label.match(/[0-9]+/)) {
-                    console.log(f[0]);
                     eb.frame = ~~(f[0]);
                 } else {
                     eb.frame = 0;
@@ -210,26 +243,62 @@ window.onload = function() {
             }
         };
 
+        var clearEnemyBullets = function() {
+            for ( var i = 0, end = enemyBulletPool.length; i < end; i++) {
+                var eb = enemyBulletPool[i];
+                if (!eb.active) {
+                    continue;
+                }
+                eb.removeDanmaku();
+                eb.on("enterframe", function() {
+                    this.frame += 0.2;
+                    if (this.frame >= this.type * 4 + 4) {
+                        this.frame = this.type * 4;
+                        this
+                                .removeEventListener("enterframe",
+                                        arguments.callee);
+                        this.remove();
+                    }
+                });
+            }
+        };
+
+        AttackPattern.defaultConfig.target = kuma;
+        AttackPattern.defaultConfig.bulletFactory = ebFactory;
         var teki = new Enemy(32, 32, 300);
         teki.x = (game.width - teki.width) / 2;
         teki.y = 64;
         teki.scale(3, 3);
         teki.image = game.assets["chara1.png"];
         teki.frame = 10;
-        teki.setDanmaku(game.assets["pattern1.xml"], {
-            target : kuma,
-            bulletFactory : ebFactory
-        });
+        teki.setDanmaku(game.assets["pattern1.xml"]);
+        teki.kill = function() {
+            this.removeDanmaku();
+            clearEnemyBullets();
+            for ( var i = 0, end = enemies.length; i < end; i++) {
+                var e = enemies[i];
+                if (e && e.parentNode && e !== this) {
+                    e.kill();
+                }
+            }
+            this.hp = 300;
+            explode(this, 3);
+            this.tl.moveTo((game.width - this.width) / 2, 64, 10).then(
+                    function() {
+                        this.setDanmaku(game.assets["pattern1.xml"]);
+                    });
+        };
         scene.addChild(teki);
 
         game.on("enterframe", function() {
             for ( var i = 0, end = enemyBulletPool.length; i < end; i++) {
                 var eb = enemyBulletPool[i];
-                if (!eb.active) {
+                if (!eb.active || !eb.parentNode) {
                     continue;
                 }
                 var t = eb.type;
                 if (kuma.mode == t && eb.within(kuma, 32)) {
+                    eb.removeDanmaku();
                     eb.remove();
                     continue;
                 } else if (eb.within(kuma, 4)) {
@@ -257,7 +326,7 @@ window.onload = function() {
                 if (!e) {
                     continue;
                 }
-                if (e.within(kuma, 16)) {
+                if (e.within(kuma, 20)) {
                     e.remove();
                     miss();
                     continue;
@@ -276,12 +345,7 @@ window.onload = function() {
             if (missing || kuma.muteki) {
                 return;
             }
-            for ( var i = 0, end = enemyBulletPool.length; i < end; i++) {
-                var eb = enemyBulletPool[i];
-                eb.clearEventListener("enterframe");
-                eb.active = false;
-                eb.remove();
-            }
+            clearEnemyBullets();
             missing = true;
             explode(kuma);
             kuma.remove();
@@ -300,6 +364,7 @@ window.onload = function() {
 Array.prototype.pool = function(o) {
     o.active = false;
     o.on("removed", function() {
+        this.removeDanmaku();
         this.active = false
     });
     this.push(o);
