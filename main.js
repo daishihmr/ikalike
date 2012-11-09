@@ -14,7 +14,7 @@ window.onload = function() {
     game.preload("chara1.png", "barrier.png", "icon0.png", "enemy-bullet.png",
             "explosion.png", "pattern1.xml");
     game.on("load", function() {
-        (function() {
+        var barrier = (function() {
             var C = 64;
             var s = new Surface(C * 2, C * 1);
             var c = s.context;
@@ -24,9 +24,9 @@ window.onload = function() {
             cy = C / 2;
             r = 32;
             g = c.createRadialGradient(cx, cy, 0, cx, cy, r);
-            g.addColorStop(0.0, "rgba(255,255,255,0.0)");
-            g.addColorStop(0.2, "rgba(255,255,255,0.0)");
-            g.addColorStop(0.9, "rgba(255,255,255,0.8)");
+            g.addColorStop(0.0, "rgba(100,100,255,0.0)");
+            g.addColorStop(0.2, "rgba(100,100,255,0.0)");
+            g.addColorStop(0.9, "rgba(255,255,255,0.5)");
             g.addColorStop(1.0, "rgba(255,255,255,0.0)");
             c.fillStyle = g;
             c.fillRect(C * 0, C * 0, C, C);
@@ -37,18 +37,19 @@ window.onload = function() {
             g = c.createRadialGradient(cx, cy, 0, cx, cy, r);
             g.addColorStop(0.0, "rgba(  0,  0,  0,0.0)");
             g.addColorStop(0.2, "rgba(  0,  0,  0,0.0)");
-            g.addColorStop(0.9, "rgba( 50,  0,  0,0.8)");
-            g.addColorStop(1.0, "rgba(  0,  0,  0,0.0)");
+            g.addColorStop(0.7, "rgba(180,  0,  0,0.4)");
+            g.addColorStop(0.9, "rgba(180,180,  0,0.8)");
+            g.addColorStop(1.0, "rgba(180,  0,  0,0.0)");
             c.fillStyle = g;
             c.fillRect(C * 1, C * 0, C, C);
 
             document.getElementById("img").src = s.toDataURL();
+            return s;
         })();
 
         var scene = new CanvasGroup();
-        scene.context.globalCompositeOperation = "lighter";
         game.rootScene.addChild(scene);
-        scene.backgroundColor = "#1f3005";
+        scene.backgroundColor = "#003333";
 
         var explode = function(obj, size) {
             if (size === undefined) {
@@ -77,6 +78,8 @@ window.onload = function() {
             var w = new Sprite(16, 16);
             w.image = game.assets["icon0.png"];
             w.frame = 48;
+            w.scale(1.5, 2);
+            w.alphaBlending = "lighter";
             w.on("enterframe", function() {
                 this.y -= bulletSpeed;
                 if (this.y < -16) {
@@ -87,7 +90,9 @@ window.onload = function() {
 
             var b = new Sprite(16, 16);
             b.image = game.assets["icon0.png"];
+            b.scale(1.5, 2);
             b.frame = 56;
+            b.alphaBlending = "lighter";
             b.on("enterframe", function() {
                 this.y -= bulletSpeed;
                 if (this.y < -16) {
@@ -103,7 +108,9 @@ window.onload = function() {
         kuma.mode = 0;
         kuma.frames = [ 5, 0 ];
         kuma.barrier = new Sprite(64, 64);
+        kuma.barrier.alphaBlending = "lighter";
         kuma.barrier.image = game.assets["barrier.png"];
+        kuma.barrier.image = barrier;
         kuma.mophing = false;
         kuma.heat = 0;
         kuma.muteki = false;
@@ -144,7 +151,7 @@ window.onload = function() {
                     return function(bul) {
                         bul.x = self.x + (self.width - bul.width) / 2 + x;
                         bul.y = self.y + (self.height - bul.height) / 2 - 16;
-                        self.parentNode.addChild(bul);
+                        scene.addChild(bul);
                     }
                 };
                 delete self;
@@ -301,7 +308,7 @@ window.onload = function() {
                     eb.removeDanmaku();
                     eb.remove();
                     continue;
-                } else if (eb.within(kuma, 4)) {
+                } else if (eb.within(kuma, 8)) {
                     eb.remove();
                     miss();
                     continue;
